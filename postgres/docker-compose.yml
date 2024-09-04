@@ -1,8 +1,8 @@
-version:  "3.8"
+version: "3.8"
 
 services:
-# database
-  postgres:
+  # database
+  db:
     image: postgres:12.2
     environment:
       - POSTGRES_USER=admin
@@ -10,27 +10,34 @@ services:
       - POSTGRES_PASSWORD=password
     container_name: postgres_db
     volumes:
-      - "~/Documents/docker_pgsql_init:/docker-entrypoint-initdb.d"
-      - "~/Documents/docker_pgsql_volume:/var/lib/postgresql/data"
+      - ~/Documents/docker_pgsql_init:/docker-entrypoint-initdb.d
+      - ~/Documents/docker_pgsql_volume:/var/lib/postgresql/data
     ports:
       - 5432:5432
+    networks:
+      - dbnetwork
     deploy:
       restart_policy:
         condition: on-failure
         max_attempts: 3
 
-
-# ui view pgadmin v4
+  # ui view pgadmin v4
   pgadmin:
     image: dpage/pgadmin4
     container_name: postgres_ui
     ports:
-      - 8080:80
+      - 8082:80
     environment:
       - PGADMIN_DEFAULT_EMAIL=user@mail.com
       - PGADMIN_DEFAULT_PASSWORD=admin
+    depends_on:
+      - db
+    networks:
+      - dbnetwork
     deploy:
       restart_policy:
         condition: on-failure
         max_attempts: 3
-      
+
+networks:
+  dbnetwork:
