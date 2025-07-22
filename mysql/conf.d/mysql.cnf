@@ -1,0 +1,17 @@
+[mysqld]
+# Performance tuning
+innodb_buffer_pool_size = 256M
+max_connections = 100
+query_cache_size = 64M
+query_cache_type = 1
+
+# Security
+bind-address = 0.0.0.0
+skip-name-resolve
+
+# Logging
+general_log = 1
+general_log_file = /var/lib/mysql/general.log
+slow_query_log = 1
+slow_query_log_file = /var/lib/mysql/slow.log
+long_query_time = 2
