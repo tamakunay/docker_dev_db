@@ -4,10 +4,10 @@ services:
    # db
    db: 
     image: mysql:8.0
-    container_name: ${DB_CONTAINER_NAME:-appsDB}
+    container_name: ${DB_CONTAINER_NAME:-appsDB8}
     restart: unless-stopped
     ports:
-      - '${DB_PORT}:3306'
+      - '${DB_PORT:-3306}:3306'
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
@@ -16,25 +16,33 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
       - ./mysql/conf.d:/etc/mysql/conf.d:ro
+      - ./mysql/init:/docker-entrypoint-initdb.d:ro
     networks:
       - mysql_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+      interval: 30s
+      start_period: 30s
 
    # phpmyadmin
    phpmyadmin:
     image: phpmyadmin/phpmyadmin:latest
-    platform: linux/amd64
+    platform: ${PLATFORM}
     container_name: ${PMA_CONTAINER_NAME:-phpmyadmin}
     restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
     ports:
-      - '${PHPMYADMIN_PORT:-8081}:80'
+      - '${PMA_PORT:-8081}:80'
     environment:
       PMA_HOST: db
       PMA_PORT: 3306
-      PMA_USER: ${MYSQL_USER}
-      PMA_PASSWORD: ${MYSQL_PASSWORD}
+      PMA_USER: root
+      PMA_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       UPLOAD_LIMIT: 1G
-    depends_on:
-      - db
     networks:
       - mysql_network
 
